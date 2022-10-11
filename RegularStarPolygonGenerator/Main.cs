@@ -35,7 +35,7 @@ namespace RegularStarPolygonGenerator
                     throw new Exception("値が不正です。");
                 if (N % M == 0)
                     Console.WriteLine($"星型正多角形ではありません。");
-
+                Draw();
 
 
 
@@ -66,14 +66,14 @@ namespace RegularStarPolygonGenerator
             int ImgSize = (int)Num_ImgSize.Value;
             int Linelong = (int)Num_LineLong.Value;
             Bitmap Img = new Bitmap((int)Num_ImgSize.Value, (int)Num_ImgSize.Value);
-            Graphics g = new Graphics();
+            Graphics g = Graphics.FromImage(Img);
 
             int Angle = 180 * (N - 2 * M / N);
 
             List<Point> Points = new List<Point>
             {
-                new Point(0, 0),
-                new Point(Linelong, 0)
+                new Point(100, 100),
+                new Point(Linelong + 100, 100)
             };
             double PointX_ = Linelong;
             double PointY_ = 0;
@@ -87,22 +87,35 @@ namespace RegularStarPolygonGenerator
                 double PY = PointY_ + Linelong * Math.Cos(Angle);
                 double PX_ = PointX_ - Linelong * Math.Sin(Angle);
                 double PY_ = PointY_ - Linelong * Math.Cos(Angle);
+                Console.WriteLine($"{PointX_} {PointY_} {L} {OX} {OY}");
+                Console.WriteLine($"{PX} {PY} {PX_} {PY_}");
+                Console.WriteLine($"{L * L} {(OX - PX) * (OX - PX) + (OY - PY) * (OY - PY)} {(OX - PX_) * (OX - PX_) + (OY - PY) * (OY - PY)} {(OX - PX) * (OX - PX) + (OY - PY_) * (OY - PY_)} {(OX - PX_) * (OX - PX_) + (OY - PY_) * (OY - PY_)}");
+
+
                 if ((OX - PX) * (OX - PX) + (OY - PY) * (OY - PY) <= L * L)//新しい点が円の中にあるか
-                    Points.Add(new Point((int)PX, (int)PY));//↓どこにはみ出てるか不明なためそれぞれ確認
+                    Points.Add(new Point((int)PX + 100, (int)PY + 100));//↓どこにはみ出てるか不明なためそれぞれ確認
                 else if ((OX - PX_) * (OX - PX_) + (OY - PY) * (OY - PY) <= L * L)//Xを変えればおｋ
-                    Points.Add(new Point((int)PX, (int)PY));
+                    Points.Add(new Point((int)PX_ + 100, (int)PY + 100));
                 else if ((OX - PX) * (OX - PX) + (OY - PY_) * (OY - PY_) <= L * L)//Yを変えればおｋ
-                    Points.Add(new Point((int)PX, (int)PY));
+                    Points.Add(new Point((int)PX + 100, (int)PY_ + 100));
                 else if ((OX - PX_) * (OX - PX_) + (OY - PY_) * (OY - PY_) <= L * L)//X,Yを変えればおｋ
-                    Points.Add(new Point((int)PX, (int)PY));
-                else
-                    throw new Exception("計算ミスまたは計算に問題があります。");
+                    Points.Add(new Point((int)PX_ + 100, (int)PY_ + 100));
+                else;
+                //throw new Exception("計算ミスまたは計算に問題があります。");
 
-
+                /*
+                 23:01:38.9017 生成開始
+100 0 -36.5076482090253 50 -36.5076482090253
+199.780327442197 6.62467022031581 0.219672557802951 -6.62467022031581
+1332.80837775395 24294.5433817818 4338.47789334244 23327.1388621655 3371.07337372605
+                 */
             }
 
             g.Clear(Color.White);
             g.DrawPolygon(Pens.Black, Points.ToArray());
+            Img.Save("test.png", System.Drawing.Imaging.ImageFormat.Png);
+
+            Img.Dispose();
 
         }
 
