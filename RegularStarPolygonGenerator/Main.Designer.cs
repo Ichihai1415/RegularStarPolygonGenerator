@@ -188,9 +188,19 @@
             0,
             0,
             0});
+            this.Num_ImgSize.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             this.Num_ImgSize.Name = "Num_ImgSize";
             this.Num_ImgSize.Size = new System.Drawing.Size(56, 24);
             this.Num_ImgSize.TabIndex = 12;
+            this.Num_ImgSize.Value = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
             // 
             // Text4
             // 
@@ -211,9 +221,19 @@
             0,
             0,
             0});
+            this.Num_LineLong.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             this.Num_LineLong.Name = "Num_LineLong";
             this.Num_LineLong.Size = new System.Drawing.Size(51, 24);
             this.Num_LineLong.TabIndex = 14;
+            this.Num_LineLong.Value = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
             // 
             // RegularStarPolygonGenerator
             // 
@@ -234,7 +254,6 @@
             this.Controls.Add(this.GeneratedImage);
             this.Controls.Add(this.Version);
             this.Font = new System.Drawing.Font("MS UI Gothic", 14F);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.HelpButton = true;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);

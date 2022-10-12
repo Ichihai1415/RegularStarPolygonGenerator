@@ -68,48 +68,68 @@ namespace RegularStarPolygonGenerator
             Bitmap Img = new Bitmap((int)Num_ImgSize.Value, (int)Num_ImgSize.Value);
             Graphics g = Graphics.FromImage(Img);
 
-            int Angle = 180 * (N - 2 * M / N);
-
+            int Angle = 180 * ((N - 2) * M / N) / N;
+            double AngleRad = Angle * (Math.PI / 180);//Math.SinCosTanはこれ使う
             List<Point> Points = new List<Point>
             {
                 new Point(100, 100),
                 new Point(Linelong + 100, 100)
             };
-            double PointX_ = Linelong;
-            double PointY_ = 0;
+            Console.WriteLine($"X:0 Y:0");
+            Console.WriteLine($"X:{Linelong} Y:0");
 
-            double L = Linelong * Math.Cos(Angle / 2) / 2;//半径
+            int PointX_ = Linelong;
+            int PointY_ = 0;
+
+            double L = Linelong / 2 / Math.Cos(AngleRad / 2);//半径
             double OX = Linelong / 2;//中心座標
-            double OY = OX * Math.Cos(Angle / 2);
+            double OY = Linelong / 2 * Math.Tan(AngleRad / 2);
+
+            Console.WriteLine($"内角:{Angle} 内角ラジアン:{AngleRad} 円半径:{L} 中心座標X:{OX} Y:{OY}");
             for (int i = 2; i < Num_N.Value; i++)
             {
-                double PX = PointX_ + Linelong * Math.Sin(Angle);
-                double PY = PointY_ + Linelong * Math.Cos(Angle);
-                double PX_ = PointX_ - Linelong * Math.Sin(Angle);
-                double PY_ = PointY_ - Linelong * Math.Cos(Angle);
-                Console.WriteLine($"{PointX_} {PointY_} {L} {OX} {OY}");
-                Console.WriteLine($"{PX} {PY} {PX_} {PY_}");
-                Console.WriteLine($"{L * L} {(OX - PX) * (OX - PX) + (OY - PY) * (OY - PY)} {(OX - PX_) * (OX - PX_) + (OY - PY) * (OY - PY)} {(OX - PX) * (OX - PX) + (OY - PY_) * (OY - PY_)} {(OX - PX_) * (OX - PX_) + (OY - PY_) * (OY - PY_)}");
+                double PX = PointX_ + Linelong * Math.Sin(AngleRad);
+                double PY = PointY_ + Linelong * Math.Cos(AngleRad);
+                double PX_ = PointX_ - Linelong * Math.Sin(AngleRad);
+                double PY_ = PointY_ - Linelong * Math.Cos(AngleRad);
+                
+                Console.WriteLine($"移動後座標X:{PX} Y:{PY} 逆X:{PX_} 逆Y:{PY_} 半径二乗:{L * L}");
+                Console.WriteLine($"そのまま:{(OX - PX) * (OX - PX) + (OY - PY) * (OY - PY)} X変:{(OX - PX_) * (OX - PX_) + (OY - PY) * (OY - PY)} Y変:{(OX - PX) * (OX - PX) + (OY - PY_) * (OY - PY_)} XY変:{(OX - PX_) * (OX - PX_) + (OY - PY_) * (OY - PY_)}");
+              
 
 
+
+                //↓
                 if ((OX - PX) * (OX - PX) + (OY - PY) * (OY - PY) <= L * L)//新しい点が円の中にあるか
-                    Points.Add(new Point((int)PX + 100, (int)PY + 100));//↓どこにはみ出てるか不明なためそれぞれ確認
-                else if ((OX - PX_) * (OX - PX_) + (OY - PY) * (OY - PY) <= L * L)//Xを変えればおｋ
-                    Points.Add(new Point((int)PX_ + 100, (int)PY + 100));
-                else if ((OX - PX) * (OX - PX) + (OY - PY_) * (OY - PY_) <= L * L)//Yを変えればおｋ
-                    Points.Add(new Point((int)PX + 100, (int)PY_ + 100));
-                else if ((OX - PX_) * (OX - PX_) + (OY - PY_) * (OY - PY_) <= L * L)//X,Yを変えればおｋ
-                    Points.Add(new Point((int)PX_ + 100, (int)PY_ + 100));
-                else;
-                //throw new Exception("計算ミスまたは計算に問題があります。");
-
-                /*
-                 23:01:38.9017 生成開始
-100 0 -36.5076482090253 50 -36.5076482090253
-199.780327442197 6.62467022031581 0.219672557802951 -6.62467022031581
-1332.80837775395 24294.5433817818 4338.47789334244 23327.1388621655 3371.07337372605
-                 */
+                {
+                    Console.WriteLine("そのまま");
+                    PointX_ = (int)Math.Round(PX, MidpointRounding.AwayFromZero);
+                    PointY_ = (int)Math.Round(PY, MidpointRounding.AwayFromZero);
+                }//↓どこにはみ出てるか不明なためそれぞれ確認
+                else if ((OX - PX_) * (OX - PX_) + (OY - PY) * (OY - PY) <= L * L)
+                {
+                    Console.WriteLine("Xを変えればおｋ");
+                    PointX_ = (int)Math.Round(PX_, MidpointRounding.AwayFromZero);
+                    PointY_ = (int)Math.Round(PY, MidpointRounding.AwayFromZero);
+                }
+                else if ((OX - PX) * (OX - PX) + (OY - PY_) * (OY - PY_) <= L * L)
+                {
+                    Console.WriteLine("Yを変えればおｋ");
+                    PointX_ = (int)Math.Round(PX, MidpointRounding.AwayFromZero);
+                    PointY_ = (int)Math.Round(PY_, MidpointRounding.AwayFromZero);
+                }
+                else if ((OX - PX_) * (OX - PX_) + (OY - PY_) * (OY - PY_) <= L * L)
+                {
+                    Console.WriteLine("X,Yを変えればおｋ");
+                    PointX_ = (int)Math.Round(PX_, MidpointRounding.AwayFromZero);
+                    PointY_ = (int)Math.Round(PY_, MidpointRounding.AwayFromZero);
+                }
+                else
+                    throw new Exception("計算ミスまたは計算に問題があります。");
+                Console.WriteLine($"X:{PointX_} Y:{PointY_}");
+                Points.Add(new Point(PointX_ + 100, PointY_ + 100));
             }
+            Points.Add(new Point(100, 100));
 
             g.Clear(Color.White);
             g.DrawPolygon(Pens.Black, Points.ToArray());
