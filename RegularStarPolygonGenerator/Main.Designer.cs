@@ -108,7 +108,7 @@
             this.Num_M.Font = new System.Drawing.Font("MS UI Gothic", 12F);
             this.Num_M.Location = new System.Drawing.Point(197, 3);
             this.Num_M.Maximum = new decimal(new int[] {
-            9999,
+            49999,
             0,
             0,
             0});
@@ -163,7 +163,7 @@
             this.Message.AutoSize = true;
             this.Message.BackColor = System.Drawing.Color.White;
             this.Message.Font = new System.Drawing.Font("MS UI Gothic", 20F);
-            this.Message.ForeColor = System.Drawing.Color.Red;
+            this.Message.ForeColor = System.Drawing.SystemColors.ControlText;
             this.Message.Location = new System.Drawing.Point(1, 101);
             this.Message.MaximumSize = new System.Drawing.Size(498, 498);
             this.Message.Name = "Message";
@@ -198,7 +198,7 @@
             this.Num_ImgSize.Size = new System.Drawing.Size(60, 23);
             this.Num_ImgSize.TabIndex = 12;
             this.Num_ImgSize.Value = new decimal(new int[] {
-            10000,
+            1000,
             0,
             0,
             0});
@@ -239,7 +239,6 @@
             this.Name = "RegularStarPolygonGenerator";
             this.Text = "RegularStarPolygonGenerator";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.RegularStarPolygonGenerator_FormClosed);
-            this.Load += new System.EventHandler(this.RegularStarPolygonGenerator_Load);
             ((System.ComponentModel.ISupportInitialize)(this.GeneratedImage)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.Num_N)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.Num_M)).EndInit();

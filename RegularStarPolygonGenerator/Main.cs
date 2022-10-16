@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace RegularStarPolygonGenerator
@@ -15,12 +17,7 @@ namespace RegularStarPolygonGenerator
             InitializeComponent();
         }
 
-        private void RegularStarPolygonGenerator_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Generation_Click(object sender, EventArgs e)
+        private async void Generation_Click(object sender, EventArgs e)
         {
             try
             {
@@ -31,22 +28,40 @@ namespace RegularStarPolygonGenerator
                 int M = (int)Num_M.Value;
                 int ImgSize = (int)Num_ImgSize.Value;
                 if (N <= M * 2)
-                    throw new Exception("値が不正です。");
+                    throw new RegularStarPolygonGeneratorException("値が不正です。辺の数 > 飛び数 x 2 である必要があります。");
                 if (N % M == 0)
-                    Console.WriteLine("※星型正多角形ではありません。");
-                Bitmap Img = Draw(N, M, ImgSize);
+                    Console.WriteLine("※星型正多角形ではありません。N ÷ M の余りが0以外である必要があります。");
+                Img = new Bitmap(ImgSize, ImgSize);
+                await Task.Run(() => 
+                { 
+                    Invoke((MethodInvoker)(() => 
+                    {
+                        Draw(N, M, ImgSize); 
+                    })); 
+                });
                 Console.WriteLine($"{DateTime.Now:HH:mm:ss.ffff} 生成完了");
                 Console.WriteLine($"生成時間:{(DateTime.Now - StartTime).TotalMilliseconds}ms");
+                Console.WriteLine($"{DateTime.Now:HH:mm:ss.ffff} 保存開始");
                 if (!Directory.Exists("output"))
                     Directory.CreateDirectory("output");
                 if (!Directory.Exists($"output\\{N}"))
                     Directory.CreateDirectory($"output\\{N}");
                 if (!Directory.Exists($"output\\{N}\\{M}"))
                     Directory.CreateDirectory($"output\\{N}\\{M}");
-                Img.Save($"output\\{N}\\{M}\\{M}-{N}-{ImgSize}px.png", ImageFormat.Png);
-                Console.WriteLine($"{DateTime.Now:HH:mm:ss.ffff} 出力完了");
+                await Task.Run(() => 
+                {
+                    Invoke((MethodInvoker)(() => 
+                    {
+                        GeneratedImage.Image = Img;
+                        Img.Save($"output\\{N}\\{M}\\{N}-{M}-{ImgSize}px.png", ImageFormat.Png);
+                        Console.WriteLine($"output\\{N}\\{M}\\{N}-{M}-{ImgSize}px.pngに保存しました。");
+                    }));
+                });
+                Console.WriteLine($"{DateTime.Now:HH:mm:ss.ffff} 保存完了");
                 if (N % M == 0)
                     Message.Text = "※星型正多角形ではありません。";
+                else
+                    Message.Text = "";
             }
             catch (Exception ex)
             {
@@ -58,19 +73,18 @@ namespace RegularStarPolygonGenerator
                 Console.WriteLine("\n----------------------------------------------------------------------------------------------------\n");
             }
         }
-        public Bitmap Draw(int N, int M, int ImgSize)
+        public void Draw(int N, int M, int ImgSize)
         {
             Console.WriteLine($"辺の数:{N}");
             Console.WriteLine($"飛び数:{M}");
             Console.WriteLine($"画像サイズ:{ImgSize}px");
             int L = ImgSize / 2;//半径
             Console.WriteLine($"外接円半径:{L}px");
-            Bitmap Img = new Bitmap(ImgSize, ImgSize);
-                Graphics g = Graphics.FromImage(Img);
-            double AngleRad = (Math.PI * 2) / N;
-            Console.WriteLine($"外接正n角形ラジアン:{AngleRad}");
-
-
+            Graphics g = Graphics.FromImage(Img);
+            double AngleRad = Math.PI * 2 / N;
+            Console.WriteLine($"外接正n角形内角ラジアン:{AngleRad}");
+            Console.WriteLine($"外接正n角形内角:{180 * (N - 2) / N}°");
+            Console.WriteLine($"外接正n角形内角合計:{180 * (N - 2)}°");
             List<Point> Points_RegularPolygon = new List<Point>();//正n角形の頂点座標(中心:0,0)
             List<Point> Points_StarRegularPolygon = new List<Point>();//星型正n角形の頂点座標
             for (int i = 0; i < N; i++)
@@ -87,10 +101,24 @@ namespace RegularStarPolygonGenerator
                 if (p >= N)
                     p -= N;
                 Points_StarRegularPolygon.Add(new Point(Points_RegularPolygon[p].X, Points_RegularPolygon[p].Y));
-                Console.WriteLine($"星型正n角形頂点座標{i + 1}:外接正n角形頂点{p + 1},{Points_StarRegularPolygon[p + 1].X + L},{Points_StarRegularPolygon[p+1].Y + L}");
+                Console.WriteLine($"星型正n角形頂点座標{i + 1}:外接正n角形頂点{p + 1},{Points_StarRegularPolygon[i].X + L},{Points_StarRegularPolygon[i].Y + L}");
             }
             Console.WriteLine($"{DateTime.Now:HH:mm:ss.ffff} 星型正n角形頂点座標計算終了");
             g.TranslateTransform(L, L); //移動して-部分を無くす
+            double Angle_Star = 180 * ((N - 2) * M / N);
+            double LineLong = L * Math.Cos(Angle_Star / N * (Math.PI / 180)) * 2;
+            Console.WriteLine($"描画情報再掲");
+            Console.WriteLine($"　辺の数:{N}");
+            Console.WriteLine($"　飛び数:{M}");
+            Console.WriteLine($"　画像サイズ:{ImgSize}px");
+            Console.WriteLine($"　外接円半径:{L}px");
+            Console.WriteLine($"　外接正n角形内角ラジアン:{AngleRad}");
+            Console.WriteLine($"　外接正n角形内角:{180 * (N - 2) / N}°");
+            Console.WriteLine($"　外接正n角形内角合計:{180 * (N - 2)}°");
+            Console.WriteLine($"その他情報");
+            Console.WriteLine($"　一辺の長さ:{LineLong}px");
+            Console.WriteLine($"　内角の大きさ:{Angle_Star / N}°");
+            Console.WriteLine($"　内角の合計:{Angle_Star}°");
             /*旧版
             int Angle = 180 * ((N - 2) * M / N) / N;
             double AngleRad = Angle * (Math.PI / 180);//Math.SinCosTanはこれ使う
@@ -153,9 +181,8 @@ namespace RegularStarPolygonGenerator
             */
             g.Clear(Color.White);
             g.DrawPolygon(Pens.Black, Points_StarRegularPolygon.ToArray());
-            return Img;
         }
-
+        public Bitmap Img;
         private void Wiki_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             Process.Start("https://ja.wikipedia.org/wiki/%E6%98%9F%E5%9E%8B%E6%AD%A3%E5%A4%9A%E8%A7%92%E5%BD%A2");
@@ -163,7 +190,30 @@ namespace RegularStarPolygonGenerator
 
         private void RegularStarPolygonGenerator_FormClosed(object sender, FormClosedEventArgs e)
         {
+            Console.WriteLine("何かキーを押すと終了します。");
             Application.Exit();
+        }
+    }
+    [Serializable()]
+    public class RegularStarPolygonGeneratorException : Exception
+    {
+        public RegularStarPolygonGeneratorException() : base()
+        {
+
+        }
+
+        public RegularStarPolygonGeneratorException(string message) : base(message)
+        {
+
+        }
+
+        public RegularStarPolygonGeneratorException(string message, Exception innerException) : base(message, innerException)
+        {
+
+        }
+        protected RegularStarPolygonGeneratorException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+
         }
     }
 }
