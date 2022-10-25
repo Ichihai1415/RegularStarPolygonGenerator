@@ -33,7 +33,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>RSPGicon.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\RSPG.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -113,7 +113,7 @@
     <None Include="Resources\RSPGicon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="RSPGicon.ico" />
+    <None Include="Resources\RSPG.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
