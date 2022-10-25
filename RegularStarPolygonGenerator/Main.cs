@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.Serialization;
@@ -23,6 +24,7 @@ namespace RegularStarPolygonGenerator
             try
             {
                 Generation.Enabled = false;
+                ColorCount.Enabled = false;
                 Console.WriteLine($"{DateTime.Now:HH:mm:ss.ffff} 生成開始");
                 DateTime StartTime = DateTime.Now;
                 ProgressBar.Value = 0;
@@ -33,23 +35,17 @@ namespace RegularStarPolygonGenerator
                 int ImgSize = (int)Num_ImgSize.Value;
                 if (N <= M * 2)
                     throw new RegularStarPolygonGeneratorException("値が不正です。辺の数 > 飛び数 x 2 である必要があります。");
-                if (N % M == 0)
-                    throw new RegularStarPolygonGeneratorException("星型正多角形ではありません。生成対象外です。N ÷ M の余りが0以外である必要があります。");
-                int A = GreatestCommonDivisor(N,M);
-                if (A != 1)
-                {
-
-                    Console.WriteLine($"NとMが同じ数({A})で割れます。Nを{N/A}、Mを{M/A}として計算します。");
-
-                }
+                int A = GreatestCommonDivisor(N, M);
                 Img = new Bitmap(ImgSize, ImgSize);
-                await Task.Run(() => 
-                { 
-                    Invoke((MethodInvoker)(() => 
+                await Task.Run(() =>
+                {
+                    Invoke((MethodInvoker)(() =>
                     {
-                        Draw(N/A,M/A,ImgSize); 
-                    })); 
+                        Draw(N / A, M / A, ImgSize);
+                    }));
                 });
+                if (A != 1)
+                    Console.WriteLine($"NとMが同じ数({A})で割れます。Nを{N / A}、Mを{M / A}として計算しました。");
                 Console.WriteLine($"{DateTime.Now:HH:mm:ss.ffff} 生成完了");
                 Console.WriteLine($"生成時間:{(DateTime.Now - StartTime).TotalMilliseconds}ms");
                 Console.WriteLine($"{DateTime.Now:HH:mm:ss.ffff} 保存開始");
@@ -59,9 +55,9 @@ namespace RegularStarPolygonGenerator
                     Directory.CreateDirectory($"output\\{N}");
                 if (!Directory.Exists($"output\\{N}\\{M}"))
                     Directory.CreateDirectory($"output\\{N}\\{M}");
-                await Task.Run(() => 
+                await Task.Run(() =>
                 {
-                    Invoke((MethodInvoker)(() => 
+                    Invoke((MethodInvoker)(() =>
                     {
                         Message.Text = "表示準備中...";
                         ProgressBar.Value = 60;
@@ -74,8 +70,10 @@ namespace RegularStarPolygonGenerator
                     }));
                 });
                 Console.WriteLine($"{DateTime.Now:HH:mm:ss.ffff} 保存完了");
-                if (N % M == 0)
-                    Message.Text = "※星型正多角形ではありません。";
+                if (N % M == 0 && M != 1)
+                    Message.Text = "※星型正多角形ではありません。一部の描画ができていない可能性があります。";//そもそもやってない
+                else if (M == 1)
+                    Message.Text = $"※星型正多角形ではありません。正{N}角形を描画しています。";
                 else
                     Message.Text = "";
             }
@@ -87,6 +85,7 @@ namespace RegularStarPolygonGenerator
             finally
             {
                 Generation.Enabled = true;
+                ColorCount.Enabled = true;
                 ProgressBar.Value = 0;
                 Console.WriteLine("\n----------------------------------------------------------------------------------------------------\n");
             }
@@ -97,7 +96,7 @@ namespace RegularStarPolygonGenerator
         /// <param name="N">辺の数。</param>
         /// <param name="M">飛び数。</param>
         /// <param name="ImgSize">画像サイズ。</param>
-        public void Draw(int N,int M,int ImgSize)
+        public void Draw(int N, int M, int ImgSize)
         {
             Console.WriteLine($"辺の数:{N}");
             Console.WriteLine($"飛び数:{M}");
@@ -135,6 +134,7 @@ namespace RegularStarPolygonGenerator
             g.TranslateTransform(L, L); //移動して-部分を無くす
             double Angle_Star = 180 * (N - 2 * M);
             double LineLong = L * Math.Cos(Angle_Star / N * (Math.PI / 180)) * 2;
+
             Console.WriteLine($"描画情報再掲");
             Console.WriteLine($"　辺の数:{N}");
             Console.WriteLine($"　飛び数:{M}");
@@ -149,8 +149,21 @@ namespace RegularStarPolygonGenerator
             Console.WriteLine($"　内角の合計:{Angle_Star}°");
             Message.Text = "描画中...";
             ProgressBar.Value = 50;
-            g.Clear(Color.White);
-            g.DrawPolygon(Pens.Black, Points_StarRegularPolygon.ToArray());
+            g.Clear(BackColorSample.BackColor);
+            if (Gra_Fill.Checked)
+                g.FillPolygon(new SolidBrush(PolygonColorSample.BackColor), Points_StarRegularPolygon.ToArray(), FillMode.Winding);
+            else
+                g.DrawPolygon(new Pen(PolygonColorSample.BackColor), Points_StarRegularPolygon.ToArray());
+            if (Gra_RegularPolygon.Checked)
+                g.DrawPolygon(new Pen(PolygonColorSample.BackColor), Points_RegularPolygon.ToArray());
+            g.TranslateTransform(-L, -L); //戻す
+
+            if (Gra_Circle.Checked)
+                g.DrawEllipse(new Pen(PolygonColorSample.BackColor), 0, 0, ImgSize, ImgSize);
+
+
+
+
         }
         public Bitmap Img;
         private void Wiki_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -192,28 +205,38 @@ namespace RegularStarPolygonGenerator
         {
             try
             {
+                Generation.Enabled = false;
+                ColorCount.Enabled = false;
                 int Count = 0;
-                int ImgSize = (int)Num_ImgSize.Value;
+                int ImgSize = Img.Width;
+                ProgressBar.Maximum = ImgSize;
                 Color CheckColor = PolygonColorSample.BackColor;
                 for (int x = 0; x < ImgSize; x++)
                 {
                     int Count_ = 0;
                     for (int y = 0; y < ImgSize; y++)
                     {
-                        if (Img.GetPixel(x, y) == CheckColor)
+                        if (Img.GetPixel(x, y).R == CheckColor.R&& Img.GetPixel(x, y).G == CheckColor.G&& Img.GetPixel(x, y).B == CheckColor.B)
                             Count_++;
                     }
                     Count += Count_;
                     Console.WriteLine($"X:{x} 対象数:{Count_}/{ImgSize} 累計:{Count}/{ImgSize * x + ImgSize}");
+                    ProgressBar.Value = x + 1;
                 }
+                Message.Text = $"対象数:{Count}/{ImgSize *ImgSize}";
             }
-            catch
+            catch (Exception ex)
             {
-
+                Message.Text = ex.Message;
+                Console.WriteLine("////////////////////////////////////////////////////////////////////////////////////////////////////\n" + ex + "\n////////////////////////////////////////////////////////////////////////////////////////////////////");
             }
             finally
             {
-
+                ProgressBar.Maximum = 100;
+                Generation.Enabled = true;
+                ColorCount.Enabled = true;
+                ProgressBar.Value = 0;
+                Console.WriteLine("\n----------------------------------------------------------------------------------------------------\n");
             }
         }
 
