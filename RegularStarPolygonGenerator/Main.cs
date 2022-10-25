@@ -36,6 +36,8 @@ namespace RegularStarPolygonGenerator
                 if (N <= M * 2)
                     throw new RegularStarPolygonGeneratorException("値が不正です。辺の数 > 飛び数 x 2 である必要があります。");
                 int A = GreatestCommonDivisor(N, M);
+                if (A != 1)
+                    Console.WriteLine($"NとMが同じ数({A})で割れます。Nを{N / A}、Mを{M / A}として計算します。");
                 Img = new Bitmap(ImgSize, ImgSize);
                 await Task.Run(() =>
                 {
@@ -44,8 +46,6 @@ namespace RegularStarPolygonGenerator
                         Draw(N / A, M / A, ImgSize);
                     }));
                 });
-                if (A != 1)
-                    Console.WriteLine($"NとMが同じ数({A})で割れます。Nを{N / A}、Mを{M / A}として計算しました。");
                 Console.WriteLine($"{DateTime.Now:HH:mm:ss.ffff} 生成完了");
                 Console.WriteLine($"生成時間:{(DateTime.Now - StartTime).TotalMilliseconds}ms");
                 Console.WriteLine($"{DateTime.Now:HH:mm:ss.ffff} 保存開始");
@@ -76,6 +76,8 @@ namespace RegularStarPolygonGenerator
                     Message.Text = $"※星型正多角形ではありません。正{N}角形を描画しています。";
                 else
                     Message.Text = "";
+                if (A != 1)
+                    Message.Text += $"NとMが同じ数({A})で割れます。Nを{N / A}、Mを{M / A}として計算しました。";
             }
             catch (Exception ex)
             {
@@ -157,13 +159,8 @@ namespace RegularStarPolygonGenerator
             if (Gra_RegularPolygon.Checked)
                 g.DrawPolygon(new Pen(PolygonColorSample.BackColor), Points_RegularPolygon.ToArray());
             g.TranslateTransform(-L, -L); //戻す
-
             if (Gra_Circle.Checked)
                 g.DrawEllipse(new Pen(PolygonColorSample.BackColor), 0, 0, ImgSize, ImgSize);
-
-
-
-
         }
         public Bitmap Img;
         private void Wiki_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
